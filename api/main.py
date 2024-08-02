@@ -38,11 +38,6 @@ async def gh():
     return {"message": "Hello World"}
 
 
-@app.on_event('startup')
-async def init_db() -> None:
-    await init_models()
-
-
 def run(cfg: DictConfig):
     session_handler = SessionHandler(cfg)
     app.__setattr__("session_handler", session_handler)
