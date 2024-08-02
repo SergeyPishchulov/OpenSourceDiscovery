@@ -1,13 +1,27 @@
 import json
+from contextlib import asynccontextmanager
+
 from peewee import InternalError
 from fastapi import FastAPI, APIRouter
 import uvicorn
 
-from api.db.handle import dbhandle
 from api.db.models import ProjectStat
+from api.db.session import SessionHandler
+from api.domain.project_repo import ProjectRepo
 from gh_api.gh import GHClient
+from omegaconf import DictConfig
 
-app = FastAPI()
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Load the ML model
+    handler: SessionHandler = app.session_handler
+    await handler.init_models()
+    yield
+    # Clean up the ML models and release the resources
+
+
+app = FastAPI(lifespan=lifespan)
 
 api_router = APIRouter(prefix="/api")
 
@@ -24,11 +38,15 @@ async def gh():
     return {"message": "Hello World"}
 
 
-app.include_router(api_router)
-if __name__ == "__main__":
-    try:
-        dbhandle.connect()
-        ProjectStat.create_table()
-    except InternalError as px:
-        print(str(px))
+@app.on_event('startup')
+async def init_db() -> None:
+    await init_models()
+
+
+def run(cfg: DictConfig):
+    session_handler = SessionHandler(cfg)
+    app.__setattr__("session_handler", session_handler)
+    repo = ProjectRepo(session_handler)
+    app.include_router(api_router)
+
     uvicorn.run(app, host="0.0.0.0", port=8000)

@@ -1,2 +1,6 @@
 db:
-  
+  user: 'osdpg'
+  password: 'osdpg'
+  port: 5432
+  name: 'osdpg'
+  echo_log: True
