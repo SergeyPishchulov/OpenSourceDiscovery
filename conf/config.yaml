@@ -4,3 +4,6 @@ db:
   port: 5432
   name: 'osdpg'
   echo_log: True
+
+local_space:
+  dir: "/tmp"

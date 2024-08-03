@@ -13,7 +13,7 @@ async def get_db() -> AsyncSession:
         await session.commit()
 
 
-class ProjectRepo:
+class ProjectStatRepo:
     def __init__(self, session_handler):
         self.session_handler = session_handler
 

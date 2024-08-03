@@ -7,7 +7,8 @@ import uvicorn
 
 from api.db.models import ProjectStat
 from api.db.session import SessionHandler
-from api.domain.project_repo import ProjectRepo
+from api.domain.project_repo import ProjectStatRepo
+from conf.config import CFG
 from gh_api.gh import GHClient
 from omegaconf import DictConfig
 
@@ -38,10 +39,11 @@ async def gh():
     return {"message": "Hello World"}
 
 
-def run(cfg: DictConfig):
+def run():
+    cfg = CFG
     session_handler = SessionHandler(cfg)
     app.__setattr__("session_handler", session_handler)
-    repo = ProjectRepo(session_handler)
+    repo = ProjectStatRepo(session_handler)
     app.include_router(api_router)
 
     uvicorn.run(app, host="0.0.0.0", port=8000)
