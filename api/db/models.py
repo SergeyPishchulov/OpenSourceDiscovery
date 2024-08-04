@@ -7,10 +7,9 @@ from sqlalchemy.ext.declarative import as_declarative, declared_attr
 
 @as_declarative()
 class Base:
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    # id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     __name__: str
 
-    # Generate __tablename__ automatically
     @declared_attr
     def __tablename__(cls) -> str:
         return cls.__name__.lower()
@@ -19,7 +18,7 @@ class Base:
 class ProjectStat(Base):
     __tablename__ = "projectstat"
 
-    url = Column(String, nullable=False, unique=True)
+    url = Column(String, nullable=False, unique=True, primary_key=True)
     n_files = Column(INT, nullable=True)
     n_lines = Column(INT, nullable=True)
     info = Column(String)

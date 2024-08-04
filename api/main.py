@@ -12,6 +12,7 @@ from api.domain.wizard import Wizard
 from conf.config import CFG
 from gh_api.gh import GHClient, get_full_url
 from omegaconf import DictConfig
+from api.validation.models import ProjectStatDTO
 
 
 @asynccontextmanager
@@ -42,6 +43,7 @@ async def get_stat(owner, repo):
     url = get_full_url(owner, repo)
     print(url)
     x = await wizard.get_stat(url)
+    return ProjectStatDTO.from_orm(x)
     return x
 
 

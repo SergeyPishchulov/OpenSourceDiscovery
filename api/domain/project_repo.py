@@ -24,4 +24,4 @@ class ProjectStatRepo:
     async def add(self, stat: ProjectStat):
         async with self.session_handler.async_session() as s:
             s.add(stat)
-            s.commit()
+            await s.commit()
