@@ -6,4 +6,4 @@ db:
   echo_log: True
 
 local_space:
-  dir: "/tmp"
+  dir: "/home/sergio/projects/OpenSourceDiscovery/local_data"

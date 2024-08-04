@@ -1,6 +1,6 @@
 import uuid
 
-from sqlalchemy import Column, String
+from sqlalchemy import Column, String, INT
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.declarative import as_declarative, declared_attr
 
@@ -20,3 +20,6 @@ class ProjectStat(Base):
     __tablename__ = "projectstat"
 
     url = Column(String, nullable=False, unique=True)
+    n_files = Column(INT, nullable=True)
+    n_lines = Column(INT, nullable=True)
+    info = Column(String)
