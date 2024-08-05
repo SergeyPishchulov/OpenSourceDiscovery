@@ -20,9 +20,9 @@ class Wizard:
         self.repo = repo
 
     async def get_stat(self, name: ProjectName) -> ProjectStat:
-        # ps = await self.repo.get(name)
-        # if ps:
-        #     return ps
+        ps = await self.repo.get(name)
+        if ps:
+            return ps
         stat_json = self.compute_stat_json(name)
         ps: ProjectStat = self.parse_stat_json(name, stat_json)
         await self.repo.add(ps)
@@ -55,5 +55,3 @@ class Wizard:
         j = json.loads(ds)
         shutil.rmtree(path)
         return j
-
-

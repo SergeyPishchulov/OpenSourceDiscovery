@@ -20,7 +20,7 @@ class ProjectStatRepo:
 
     async def get(self, name: ProjectName):
         async with self.session_handler.async_session() as s:
-            return s.query(ProjectStat).filter_by(url=name).first()
+            return await s.get(ProjectStat, name)
 
     async def add(self, stat: ProjectStat):
         async with self.session_handler.async_session() as s:
