@@ -10,7 +10,7 @@ from api.db.session import SessionHandler
 from api.domain.project_repo import ProjectStatRepo
 from api.domain.wizard import Wizard
 from conf.config import CFG
-from gh_api.gh import GHClient, get_full_url
+from gh_api.gh import GHClient, ProjectNameBuilder
 from omegaconf import DictConfig
 from api.validation.models import ProjectStatDTO
 
@@ -36,15 +36,11 @@ async def root():
 
 @api_router.get('/stat/{owner}/{repo}')
 async def get_stat(owner, repo):
-    print(owner)
-    print(repo)
     if not owner or not repo:
         raise HTTPException(status_code=404, detail="owner and repo must be specified")
-    url = get_full_url(owner, repo)
-    print(url)
-    x = await wizard.get_stat(url)
+    name = ProjectNameBuilder.get_name(owner, repo)
+    x = await wizard.get_stat(name)
     return ProjectStatDTO.from_orm(x)
-    return x
 
 
 @api_router.get("/gh")

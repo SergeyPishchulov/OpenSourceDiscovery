@@ -2,6 +2,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.db.models import ProjectStat
 from api.db.session import SessionHandler
+from gh_api.gh import ProjectName
 
 
 async def get_db() -> AsyncSession:
@@ -17,9 +18,9 @@ class ProjectStatRepo:
     def __init__(self, session_handler):
         self.session_handler = session_handler
 
-    async def get(self, url: str):
+    async def get(self, name: ProjectName):
         async with self.session_handler.async_session() as s:
-            return s.query(ProjectStat).filter_by(url=url).first()
+            return s.query(ProjectStat).filter_by(url=name).first()
 
     async def add(self, stat: ProjectStat):
         async with self.session_handler.async_session() as s:
