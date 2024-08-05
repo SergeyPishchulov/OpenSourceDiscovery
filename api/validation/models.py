@@ -13,6 +13,7 @@ class ProjectStatDTO(BaseModel):
     n_files: int
     n_lines: int
     forks_cnt: int
+    stars_cnt:int
     info: dict
 
     @classmethod

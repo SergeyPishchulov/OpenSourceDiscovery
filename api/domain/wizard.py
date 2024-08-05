@@ -34,6 +34,7 @@ class Wizard:
         response: dict = await self.gh_client.get_repo(
             url=ProjectNameBuilder.get_api_url(ps.url))
         ps.forks_cnt = response["forks_count"]
+        ps.stars_cnt = response["stargazers_count"]
         # raise Exception(f"THIS IS RESP: {response}")
         return ps
 

@@ -22,4 +22,5 @@ class ProjectStat(Base):
     n_files = Column(INT, nullable=False)
     n_lines = Column(INT, nullable=False)
     forks_cnt = Column(INT, nullable=False)
+    stars_cnt = Column(INT, nullable=False)
     info = Column(String)
