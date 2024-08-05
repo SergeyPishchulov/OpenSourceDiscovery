@@ -30,8 +30,8 @@ class ProjectNameBuilder(str):
         return f"{owner}/{repo}"
 
 
-class GHClient:
-    async def get_repo(self, url) -> dict:
+class GHApiClient:
+    async def get_url(self, url) -> dict:
         async with aiohttp.ClientSession() as session:
             async with session.get(url) as response:
                 text = await response.text()

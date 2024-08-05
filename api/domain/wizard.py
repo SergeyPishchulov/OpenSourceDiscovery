@@ -8,7 +8,7 @@ from pathlib import Path
 from api.db.models import ProjectStat
 from api.domain.project_repo import ProjectStatRepo
 from conf.config import CFG
-from gh_api.gh import ProjectName, ProjectNameBuilder, GHClient
+from gh_api.gh import ProjectName, ProjectNameBuilder, GHApiClient
 
 N_FILES = 'n_files'
 N_LINES = 'n_lines'
@@ -18,7 +18,7 @@ class Wizard:
 
     def __init__(self, repo: ProjectStatRepo):
         self.repo = repo
-        self.gh_client = GHClient()
+        self.gh_api_client = GHApiClient()
 
     async def get_stat(self, name: ProjectName) -> ProjectStat:
         ps = await self.repo.get(name)
@@ -31,13 +31,28 @@ class Wizard:
         return ps
 
     async def add_gh_info(self, ps: ProjectStat):
-        response: dict = await self.gh_client.get_repo(
+        response: dict = await self.gh_api_client.get_url(
             url=ProjectNameBuilder.get_api_url(ps.url))
         ps.forks_cnt = response["forks_count"]
         ps.stars_cnt = response["stargazers_count"]
         ps.language = response["language"]
+        ps.issue_cnt = await self.get_issue_cnt(ps)
+        ps.commit_cnts = await self.get_commits_cnts(ps)
         # raise Exception(f"THIS IS RESP: {response}")
         return ps
+
+    async def get_commits_cnts(self, ps):
+        full_url = f"{ProjectNameBuilder.get_api_url(ps.url)}/stats/participation"
+        response = await self.gh_api_client.get_url(
+            url=full_url)
+        return response["all"]
+
+    async def get_issue_cnt(self, ps):
+        issue_url = f"{ProjectNameBuilder.get_api_url(ps.url)}/issues"
+        # TODO for paging see Link header
+        response = await self.gh_api_client.get_url(
+            url=issue_url)
+        return len(response)
 
     def parse_stat_json(self, name: ProjectName, j) -> ProjectStat:
         h = j.get('header', None)
