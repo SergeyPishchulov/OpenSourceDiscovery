@@ -39,15 +39,14 @@ async def get_stat(owner, repo):
     if not owner or not repo:
         raise HTTPException(status_code=404, detail="owner and repo must be specified")
     name = ProjectNameBuilder.get_name(owner, repo)
-    x = await wizard.get_stat(name)
-    return ProjectStatDTO.from_orm(x)
+    ps: ProjectStat = await wizard.get_stat(name)
+    return ProjectStatDTO.from_orm(ps)
 
 
 @api_router.get("/gh")
 async def gh():
     repo = await GHClient().get_repo("http://api.github.com/repos/siglens/siglens")
-    return json.loads(repo)
-    return {"message": "Hello World"}
+    return repo
 
 
 def run():

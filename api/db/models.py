@@ -19,6 +19,7 @@ class ProjectStat(Base):
     __tablename__ = "projectstat"
 
     url = Column(String, nullable=False, unique=True, primary_key=True)
-    n_files = Column(INT, nullable=True)
-    n_lines = Column(INT, nullable=True)
+    n_files = Column(INT, nullable=False)
+    n_lines = Column(INT, nullable=False)
+    forks_cnt = Column(INT, nullable=False)
     info = Column(String)

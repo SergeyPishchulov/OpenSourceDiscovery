@@ -1,3 +1,5 @@
+import json
+
 import aiohttp
 
 URL_PREFIX = 'https://'
@@ -10,6 +12,10 @@ class ProjectNameBuilder(str):
     @staticmethod
     def get_url(owner, repo):
         return f"{GH_BASE_URL}/{owner}/{repo}"
+
+    @staticmethod
+    def get_api_url(name):
+        return f"http://api.github.com/repos/{name}"
 
     @staticmethod
     def get_url_by_name(name: ProjectName):
@@ -25,7 +31,8 @@ class ProjectNameBuilder(str):
 
 
 class GHClient:
-    async def get_repo(self, url):
+    async def get_repo(self, url) -> dict:
         async with aiohttp.ClientSession() as session:
             async with session.get(url) as response:
-                return await response.text()
+                text = await response.text()
+                return json.loads(text)

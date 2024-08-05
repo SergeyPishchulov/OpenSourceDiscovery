@@ -8,7 +8,7 @@ from pathlib import Path
 from api.db.models import ProjectStat
 from api.domain.project_repo import ProjectStatRepo
 from conf.config import CFG
-from gh_api.gh import ProjectName, ProjectNameBuilder
+from gh_api.gh import ProjectName, ProjectNameBuilder, GHClient
 
 N_FILES = 'n_files'
 N_LINES = 'n_lines'
@@ -18,6 +18,7 @@ class Wizard:
 
     def __init__(self, repo: ProjectStatRepo):
         self.repo = repo
+        self.gh_client = GHClient()
 
     async def get_stat(self, name: ProjectName) -> ProjectStat:
         ps = await self.repo.get(name)
@@ -25,7 +26,15 @@ class Wizard:
             return ps
         stat_json = self.compute_stat_json(name)
         ps: ProjectStat = self.parse_stat_json(name, stat_json)
+        await self.add_gh_info(ps)
         await self.repo.add(ps)
+        return ps
+
+    async def add_gh_info(self, ps: ProjectStat):
+        response: dict = await self.gh_client.get_repo(
+            url=ProjectNameBuilder.get_api_url(ps.url))
+        ps.forks_cnt = response["forks_count"]
+        # raise Exception(f"THIS IS RESP: {response}")
         return ps
 
     def parse_stat_json(self, name: ProjectName, j) -> ProjectStat:
