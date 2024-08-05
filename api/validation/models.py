@@ -1,5 +1,5 @@
 import json
-from typing import Any
+from typing import Any, Optional
 from typing_extensions import Self
 import pydantic_core
 from pydantic import BaseModel, Field
@@ -13,7 +13,8 @@ class ProjectStatDTO(BaseModel):
     n_files: int
     n_lines: int
     forks_cnt: int
-    stars_cnt:int
+    stars_cnt: int
+    language: Optional[str] = None
     info: dict
 
     @classmethod
@@ -27,5 +28,5 @@ class ProjectStatDTO(BaseModel):
         try:
             res = ProjectStatDTO(**d)
         except pydantic_core._pydantic_core.ValidationError:
-            raise ValueError(f"Error creating pydantic. Fields:{d}, ProjectStat:{ps}")
+            raise ValueError(f"Error creating pydantic. \n Fields:{d}, \n ProjectStat:{ps}")
         return res

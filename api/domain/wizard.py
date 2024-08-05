@@ -35,6 +35,7 @@ class Wizard:
             url=ProjectNameBuilder.get_api_url(ps.url))
         ps.forks_cnt = response["forks_count"]
         ps.stars_cnt = response["stargazers_count"]
+        ps.language = response["language"]
         # raise Exception(f"THIS IS RESP: {response}")
         return ps
 
