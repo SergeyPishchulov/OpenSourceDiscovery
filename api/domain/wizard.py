@@ -90,16 +90,24 @@ class Wizard:
     def _parse_issue_id(self, url):
         return int(url.split('/')[-1])
 
-    async def get_latest_n_open_issue(self, ps: ProjectStat, n: int) -> List[Issue]:
+    async def get_latest_n_open_true_issue(self, ps: ProjectStat, n: int) -> List[Issue]:
         query = f"{ProjectNameBuilder.get_api_url(ps.url)}/issues?state=open&sort=created&direction=desc"
-        response = await self.gh_api_client.get_url(
-            url=query)
-        top = response[:n]
+        response: list = await self.gh_api_client.get_url(url=query)
         res = []
-        for i in top:
-            issue_url = i["url"]
-            res.append(Issue(id=self._parse_issue_id(issue_url),
+        while response and len(res) < n:
+            i = response.pop(0)
+            full_issue_url = i["url"]
+            is_true_issue = "pull_request" not in i
+            if not is_true_issue:
+                continue
+            comments = await self.get_comments(full_issue_url)
+            res.append(Issue(id=self._parse_issue_id(full_issue_url),
                              project_url=ps.url,
-                             comments=[]))
+                             comments=comments))
 
         return res
+
+    async def get_comments(self, issue_url):
+        query = f"{issue_url}/comments"
+        response: list = await self.gh_api_client.get_url(url=query)
+        return [c["body"] for c in response]

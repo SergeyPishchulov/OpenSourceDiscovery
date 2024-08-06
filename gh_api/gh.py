@@ -2,6 +2,8 @@ import json
 
 import aiohttp
 
+from conf.config import CFG
+
 URL_PREFIX = 'https://'
 GH_BASE_URL = "github.com"
 
@@ -15,7 +17,7 @@ class ProjectNameBuilder(str):
 
     @staticmethod
     def get_api_url(name):
-        return f"http://api.github.com/repos/{name}"
+        return f"https://api.github.com/repos/{name}"
 
     @staticmethod
     def get_url_by_name(name: ProjectName):
@@ -31,8 +33,10 @@ class ProjectNameBuilder(str):
 
 
 class GHApiClient:
-    async def get_url(self, url) -> dict:
+    async def get_url(self, url: str):
+        assert url.startswith("https")
         async with aiohttp.ClientSession() as session:
-            async with session.get(url) as response:
+            async with session.get(url,
+                                   headers={"Authorization": f"Bearer {CFG.github.token}"}) as response:
                 text = await response.text()
                 return json.loads(text)

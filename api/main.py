@@ -50,13 +50,13 @@ async def get_stat(owner, repo):
         raise HTTPException(status_code=404, detail="owner and repo must be specified")
     name = ProjectNameBuilder.get_name(owner, repo)
     ps: ProjectStat = await wizard.get_stat(name, need_loc=False)
-    issues = await wizard.get_latest_n_open_issue(ps, n=3)
+    issues = await wizard.get_latest_n_open_true_issue(ps, n=5)
     return issues
 
 
 @api_router.get("/gh")
 async def gh():
-    repo = await GHApiClient().get_url("http://api.github.com/repos/siglens/siglens")
+    repo = await GHApiClient().get_url("https://api.github.com/repos/siglens/siglens")
     return repo
 
 
