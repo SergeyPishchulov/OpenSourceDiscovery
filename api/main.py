@@ -39,8 +39,19 @@ async def get_stat(owner, repo):
     if not owner or not repo:
         raise HTTPException(status_code=404, detail="owner and repo must be specified")
     name = ProjectNameBuilder.get_name(owner, repo)
-    ps: ProjectStat = await wizard.get_stat(name)
+    ps: ProjectStat = await wizard.get_stat(name, need_loc=True)
+    await wizard.repo.add(ps)
     return ProjectStatDTO.from_orm(ps)
+
+
+@api_router.get('/stat/{owner}/{repo}/issues')
+async def get_stat(owner, repo):
+    if not owner or not repo:
+        raise HTTPException(status_code=404, detail="owner and repo must be specified")
+    name = ProjectNameBuilder.get_name(owner, repo)
+    ps: ProjectStat = await wizard.get_stat(name, need_loc=False)
+    issues = await wizard.get_latest_n_open_issue(ps, n=3)
+    return issues
 
 
 @api_router.get("/gh")

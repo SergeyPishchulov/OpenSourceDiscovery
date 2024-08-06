@@ -4,8 +4,9 @@ import shutil
 import subprocess
 import uuid
 from pathlib import Path
+from typing import List
 
-from api.db.models import ProjectStat
+from api.db.models import ProjectStat, Issue
 from api.domain.project_repo import ProjectStatRepo
 from conf.config import CFG
 from gh_api.gh import ProjectName, ProjectNameBuilder, GHApiClient
@@ -20,24 +21,30 @@ class Wizard:
         self.repo = repo
         self.gh_api_client = GHApiClient()
 
-    async def get_stat(self, name: ProjectName) -> ProjectStat:
+    async def get_stat(self, name: ProjectName, need_loc) -> ProjectStat:
         ps = await self.repo.get(name)
         if ps:
             return ps
-        stat_json = self.compute_stat_json(name)
-        ps: ProjectStat = self.parse_stat_json(name, stat_json)
+        ps = ProjectStat(url=name)
+        if need_loc:
+            stat_json = self.get_loc_json(name)
+            self.add_loc_info(ps, stat_json)
         await self.add_gh_info(ps)
-        await self.repo.add(ps)
+        # await self.repo.add(ps)
         return ps
 
     async def add_gh_info(self, ps: ProjectStat):
+        query = ProjectNameBuilder.get_api_url(ps.url)
         response: dict = await self.gh_api_client.get_url(
-            url=ProjectNameBuilder.get_api_url(ps.url))
-        ps.forks_cnt = response["forks_count"]
-        ps.stars_cnt = response["stargazers_count"]
-        ps.language = response["language"]
-        ps.issue_cnt = await self.get_issue_cnt(ps)
-        ps.commit_cnts = await self.get_commits_cnts(ps)
+            url=query)
+        try:
+            ps.forks_cnt = response["forks_count"]
+            ps.stars_cnt = response["stargazers_count"]
+            ps.language = response["language"]
+            ps.issue_cnt = await self.get_issue_cnt(ps)
+            ps.commit_cnts = await self.get_commits_cnts(ps)
+        except KeyError:
+            raise KeyError(query, response)
         # raise Exception(f"THIS IS RESP: {response}")
         return ps
 
@@ -54,7 +61,7 @@ class Wizard:
             url=issue_url)
         return len(response)
 
-    def parse_stat_json(self, name: ProjectName, j) -> ProjectStat:
+    def add_loc_info(self, ps, j):
         h = j.get('header', None)
         if not h:
             raise Exception("Cloc returned json with no header")
@@ -64,13 +71,11 @@ class Wizard:
         n_files = h.get(N_FILES, None)
         if not n_files:
             raise Exception("Cloc returned json with no n_lines")
+        ps.n_lines = n_lines
+        ps.n_files = n_files
+        ps.info = json.dumps(j)
 
-        ps = ProjectStat(url=name,
-                         n_lines=n_lines, n_files=n_files,
-                         info=json.dumps(j))
-        return ps
-
-    def compute_stat_json(self, name: ProjectName):
+    def get_loc_json(self, name: ProjectName):
         dir_path = Path(CFG.local_space.dir)
         path = str(dir_path / str(uuid.uuid4()))
         os.mkdir(path)
@@ -81,3 +86,20 @@ class Wizard:
         j = json.loads(ds)
         shutil.rmtree(path)
         return j
+
+    def _parse_issue_id(self, url):
+        return int(url.split('/')[-1])
+
+    async def get_latest_n_open_issue(self, ps: ProjectStat, n: int) -> List[Issue]:
+        query = f"{ProjectNameBuilder.get_api_url(ps.url)}/issues?state=open&sort=created&direction=desc"
+        response = await self.gh_api_client.get_url(
+            url=query)
+        top = response[:n]
+        res = []
+        for i in top:
+            issue_url = i["url"]
+            res.append(Issue(id=self._parse_issue_id(issue_url),
+                             project_url=ps.url,
+                             comments=[]))
+
+        return res

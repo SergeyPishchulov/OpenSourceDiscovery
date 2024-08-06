@@ -1,6 +1,6 @@
 import uuid
 
-from sqlalchemy import Column, String, INT, JSON
+from sqlalchemy import Column, String, INT, JSON, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.declarative import as_declarative, declared_attr
 
@@ -18,7 +18,7 @@ class Base:
 class ProjectStat(Base):
     __tablename__ = "projectstat"
 
-    url = Column(String, nullable=False, unique=True, primary_key=True)
+    url = Column(String, nullable=False, unique=True, primary_key=True)  # in format owner/repo
     n_files = Column(INT, nullable=False)
     n_lines = Column(INT, nullable=False)
     forks_cnt = Column(INT, nullable=False)
@@ -27,3 +27,10 @@ class ProjectStat(Base):
     issue_cnt = Column(INT, nullable=False, default=0)
     commit_cnts = Column(JSON, nullable=False)
     info = Column(String)
+
+
+class Issue(Base):
+    __tablename__ = "issue"
+    id = Column(INT, nullable=False, unique=True, primary_key=True)
+    project_url = Column(String, ForeignKey("projectstat.url"))
+    comments = Column(JSON, nullable=False)
