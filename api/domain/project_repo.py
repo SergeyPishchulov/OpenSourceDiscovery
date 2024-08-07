@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from api.db.models import ProjectStat
+from api.db.models import ProjectStat, Issue
 from api.db.session import SessionHandler
 from gh_api.gh import ProjectName
 
@@ -25,4 +25,14 @@ class ProjectStatRepo:
     async def add(self, stat: ProjectStat):
         async with self.session_handler.async_session() as s:
             s.add(stat)
+            await s.commit()
+
+
+class IssueRepo:
+    def __init__(self, session_handler):
+        self.session_handler = session_handler
+
+    async def add(self, i: Issue):
+        async with self.session_handler.async_session() as s:
+            s.add(i)
             await s.commit()

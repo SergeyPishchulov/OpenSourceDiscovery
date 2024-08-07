@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import List
 
 from api.db.models import ProjectStat, Issue
-from api.domain.project_repo import ProjectStatRepo
+from api.domain.project_repo import ProjectStatRepo, IssueRepo
 from conf.config import CFG
 from gh_api.gh import ProjectName, ProjectNameBuilder, GHApiClient
 
@@ -17,8 +17,9 @@ N_LINES = 'n_lines'
 
 class Wizard:
 
-    def __init__(self, repo: ProjectStatRepo):
+    def __init__(self, repo: ProjectStatRepo, issue_repo: IssueRepo):
         self.repo = repo
+        self.issue_repo = issue_repo
         self.gh_api_client = GHApiClient()
 
     async def get_stat(self, name: ProjectName, need_loc) -> ProjectStat:
@@ -100,12 +101,20 @@ class Wizard:
             is_true_issue = "pull_request" not in i
             if not is_true_issue:
                 continue
+            body = await self.get_issue_body(full_issue_url)
             comments = await self.get_comments(full_issue_url)
-            res.append(Issue(id=self._parse_issue_id(full_issue_url),
-                             project_url=ps.url,
-                             comments=comments))
+            new_issue = Issue(id=self._parse_issue_id(full_issue_url),
+                              body=body,
+                              project_url=ps.url,
+                              comments=comments)
+            await self.issue_repo.add(new_issue)
+            res.append(new_issue)
 
         return res
+
+    async def get_issue_body(self, full_issue_url):
+        response: dict = await self.gh_api_client.get_url(url=full_issue_url)
+        return response["body"]
 
     async def get_comments(self, issue_url):
         query = f"{issue_url}/comments"

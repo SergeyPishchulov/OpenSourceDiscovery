@@ -7,7 +7,7 @@ import uvicorn
 
 from api.db.models import ProjectStat
 from api.db.session import SessionHandler
-from api.domain.project_repo import ProjectStatRepo
+from api.domain.project_repo import ProjectStatRepo, IssueRepo
 from api.domain.wizard import Wizard
 from conf.config import CFG
 from gh_api.gh import GHApiClient, ProjectNameBuilder
@@ -65,8 +65,9 @@ def run():
     session_handler = SessionHandler(cfg)
     app.__setattr__("session_handler", session_handler)
     repo = ProjectStatRepo(session_handler)
+    issue_repo = IssueRepo(session_handler)
     global wizard
-    wizard = Wizard(repo)
+    wizard = Wizard(repo, issue_repo)
     app.include_router(api_router)
 
     uvicorn.run(app, host="0.0.0.0", port=8000)

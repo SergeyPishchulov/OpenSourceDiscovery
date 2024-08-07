@@ -15,6 +15,15 @@ class GigaToken(NamedTuple):
 
 
 class GPTClient:
+    def __init__(self):
+        self._token = None
+
+    @property
+    def token(self) -> str:
+        if self._token is None or self._token.expires_at < datetime.now():
+            self._token = self.generate_access_token()
+        return self._token.access_token
+
     def generate_access_token(self) -> GigaToken:
         url = "https://ngw.devices.sberbank.ru:9443/api/v2/oauth"
 
@@ -35,5 +44,3 @@ class GPTClient:
                           )
         return token
 
-
-# print(GPTClient().generate_access_token())
