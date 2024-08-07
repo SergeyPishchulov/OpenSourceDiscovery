@@ -1,6 +1,7 @@
 from markdown import Markdown
 from io import StringIO
 
+
 # s = "# Description\r\nI'm using siglens version 0.2.24. If you enter a query in query mode \"code\" (at least for query language \"Splunk QL\") as soon as you enter a pipe character (\"|\") a newline gets inserted. Gives a nice query but is not very user friendly (if you are writing the query you do not expect that suddenly a new line gets created even you didn't hit \"enter\".\r\n\r\nAdditional if the query spans multiple lines as soon as you hit the search button (or elsewhere outside of the search bar) it gets collapsed back to one line. Together with the upper \"behaviour\" you only see the first part of you query - the rest is hidden.\r\n\r\nIn my opinion the search bar should stay extended and should show as many lines as your query has.\r\n\r\n# Steps to Reproduce\r\nGive detailed step-by-step instructions to help us easily reproduce the issue.\r\n1. go to Logs, switch to query mode \"code\" and query language \"Splunk QL\"\r\n2. Enter a query like `appname=dhcpd *DHCPDISCOVER* | rex field=message \"DHCPDISCOVER from (?\u003Cmac\u003E[a-fA-F0-9:]+) .*via (?\u003Cinterface\u003E\\S+)\"`\r\n3. Click the search button\r\n\r\n\u003E for the pipe character you will get a line break in the search box.\r\n\u003E if you hit the search button the search box collapses back to show only one line\r\n\r\n# Expected Behavior\r\nAs described before the full query should be visible all the time (or at least 5 rows with an indicator that more rows will be available if there are more than 5 lines of query code). Additional entering a pipe character should not automatically create a line break in the search box.\r\n\r\n# Environment\r\n- Commit Hash: Siglens v0.2.24\r\n- OS: Windows 11\r\n- Browser and Version (if applicable): Edge, current version\r\n\r\n"
 # c = "@bernatixer Right now we are sending the Query Link that would fetch the results which caused the Alert to trigger in the latest release.  I believe this is the same as your second suggestion (The ability to run a query over the initial one for the alert data (i.e. get the group by results)). It would look something like this: \r\n\r\n![image](https://github.com/user-attachments/assets/ad33a0b0-f30f-4189-97df-f10b9ce139e1)\r\n\r\n\r\nAlso, are you suggesting that on the UI, the user should be able to configure one of those above for an Alert?"
 
@@ -26,6 +27,3 @@ class MarkdownUtil:
 
     def md_to_text(self, s):
         return self.md.convert(s)
-
-
-print(MarkdownUtil().md_to_text(c))
