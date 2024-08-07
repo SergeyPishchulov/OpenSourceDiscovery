@@ -45,7 +45,7 @@ async def get_stat(owner, repo):
 
 
 @api_router.get('/stat/{owner}/{repo}/issues')
-async def get_stat(owner, repo):
+async def get_issues(owner, repo):
     if not owner or not repo:
         raise HTTPException(status_code=404, detail="owner and repo must be specified")
     name = ProjectNameBuilder.get_name(owner, repo)
