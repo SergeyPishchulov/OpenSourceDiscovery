@@ -53,6 +53,7 @@ class GHProcessor:
     async def get_median_tt_merge_pr(self, ps: ProjectStat):
         latest_prs = await self.get_latest_merged_prs(ps, n=50)
         tt_merge = [(pr["closed_at"] - pr["created_at"]).days for pr in latest_prs]
+        return 1
         res = int(np.median(tt_merge))
         print(f"Calculating tt_merge: {tt_merge}, res = {res}")
 

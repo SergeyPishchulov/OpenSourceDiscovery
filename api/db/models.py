@@ -19,15 +19,13 @@ class ProjectStat(Base):
     __tablename__ = "projectstat"
 
     url = Column(String, nullable=False, unique=True, primary_key=True)  # in format owner/repo
-    n_files = Column(INT, nullable=False)
-    n_lines = Column(INT, nullable=False)
     forks_cnt = Column(INT, nullable=False)
     stars_cnt = Column(INT, nullable=False)
     language = Column(String, nullable=True)
     issue_cnt = Column(INT, nullable=False, default=0)
     commit_cnts = Column(JSON, nullable=False)
     median_tt_merge_pr = Column(INT) # median time from PR opening to merge (in days)
-    info = Column(String)
+    info = Column(String, default="")
 
 
 class Issue(Base):

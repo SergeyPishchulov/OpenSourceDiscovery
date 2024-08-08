@@ -64,19 +64,19 @@ class Wizard:
             url=issue_url)
         return len(response)
 
-    def add_loc_info(self, ps, j):
-        h = j.get('header', None)
-        if not h:
-            raise Exception("Cloc returned json with no header")
-        n_lines = h.get(N_LINES, None)
-        if not n_lines:
-            raise Exception("Cloc returned json with no n_lines")
-        n_files = h.get(N_FILES, None)
-        if not n_files:
-            raise Exception("Cloc returned json with no n_lines")
-        ps.n_lines = n_lines
-        ps.n_files = n_files
-        ps.info = json.dumps(j)
+    # def add_loc_info(self, ps, j):
+    #     h = j.get('header', None)
+    #     if not h:
+    #         raise Exception("Cloc returned json with no header")
+    #     n_lines = h.get(N_LINES, None)
+    #     if not n_lines:
+    #         raise Exception("Cloc returned json with no n_lines")
+    #     n_files = h.get(N_FILES, None)
+    #     if not n_files:
+    #         raise Exception("Cloc returned json with no n_lines")
+    #     ps.n_lines = n_lines
+    #     ps.n_files = n_files
+    #     ps.info = json.dumps(j)
 
     def get_loc_json(self, name: ProjectName):
         dir_path = Path(CFG.local_space.dir)
