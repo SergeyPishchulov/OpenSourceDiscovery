@@ -39,7 +39,7 @@ async def get_stat(owner, repo):
     if not owner or not repo:
         raise HTTPException(status_code=404, detail="owner and repo must be specified")
     name = ProjectNameBuilder.get_name(owner, repo)
-    ps: ProjectStat = await wizard.get_stat(name, need_loc=True)
+    ps: ProjectStat = await wizard.get_stat(name)
     await wizard.repo.add(ps)
     return ProjectStatDTO.from_orm(ps)
 
@@ -49,7 +49,7 @@ async def get_issues(owner, repo):
     if not owner or not repo:
         raise HTTPException(status_code=404, detail="owner and repo must be specified")
     name = ProjectNameBuilder.get_name(owner, repo)
-    ps: ProjectStat = await wizard.get_stat(name, need_loc=False)
+    ps: ProjectStat = await wizard.get_stat(name)
     issues = await wizard.get_latest_n_open_true_issue(ps, n=5)
     return issues
 
@@ -59,7 +59,7 @@ async def get_issue(owner, repo, issue_num):
     if not owner or not repo:
         raise HTTPException(status_code=404, detail="owner and repo must be specified")
     name = ProjectNameBuilder.get_name(owner, repo)
-    ps: ProjectStat = await wizard.get_stat(name, need_loc=False)
+    ps: ProjectStat = await wizard.get_stat(name)
     res = await wizard.get_issue(ps, issue_num)
     return res
 

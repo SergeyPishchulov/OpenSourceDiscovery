@@ -11,7 +11,7 @@ from api.db.models import ProjectStat, Issue
 from api.domain.GPTAnalyzer import GPTAnalyzer
 from api.domain.project_repo import ProjectStatRepo, IssueRepo
 from conf.config import CFG
-from gh_api.gh import ProjectName, ProjectNameBuilder, GHApiClient
+from gh_api.gh import ProjectName, ProjectNameBuilder, GHApiClient, GHProcessor
 
 N_FILES = 'n_files'
 N_LINES = 'n_lines'
@@ -24,15 +24,13 @@ class Wizard:
         self.issue_repo = issue_repo
         self.gh_api_client = GHApiClient()
         self.gpt_analyzer = GPTAnalyzer()
+        self.gh_processor = GHProcessor()
 
-    async def get_stat(self, name: ProjectName, need_loc) -> ProjectStat:
+    async def get_stat(self, name: ProjectName) -> ProjectStat:
         ps = await self.repo.get(name)
         if ps:
             return ps
         ps = ProjectStat(url=name)
-        if need_loc:
-            stat_json = self.get_loc_json(name)
-            self.add_loc_info(ps, stat_json)
         await self.add_gh_info(ps)
         # await self.repo.add(ps)
         return ps
@@ -41,15 +39,15 @@ class Wizard:
         query = ProjectNameBuilder.get_api_url(ps.url)
         response: dict = await self.gh_api_client.get_url(
             url=query)
-        try:
-            ps.forks_cnt = response["forks_count"]
-            ps.stars_cnt = response["stargazers_count"]
-            ps.language = response["language"]
-            (ps.issue_cnt, ps.commit_cnts) = asyncio.gather(
-                self.get_issue_cnt(ps),
-                self.get_commits_cnts(ps))
-        except KeyError:
-            raise KeyError(query, response)
+        ps.forks_cnt = response["forks_count"]
+        ps.stars_cnt = response["stargazers_count"]
+        ps.language = response["language"]
+        res = await asyncio.gather(
+            self.get_issue_cnt(ps),
+            self.get_commits_cnts(ps),
+            self.gh_processor.get_median_tt_merge_pr(ps)
+        )
+        (ps.issue_cnt, ps.commit_cnts, ps.median_tt_merge_pr) = res
         # raise Exception(f"THIS IS RESP: {response}")
         return ps
 
@@ -118,7 +116,8 @@ class Wizard:
             if not is_true_issue:
                 continue
             body, comments = asyncio.gather(self.get_issue_body(full_issue_url),
-                                            self.get_comments(full_issue_url))
+                                            self.get_comments(full_issue_url),
+                                            )
             new_issue = Issue(id=self._parse_issue_id(full_issue_url),
                               body=body,
                               project_url=ps.url,

@@ -17,6 +17,7 @@ class ProjectStatDTO(BaseModel):
     language: Optional[str] = None
     issue_cnt: int = 0
     commit_cnts: list
+    median_tt_merge_pr: int
     info: dict
 
     @classmethod
