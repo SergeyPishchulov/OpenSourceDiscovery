@@ -46,9 +46,10 @@ class Wizard:
         ps.language = response["language"]
         res = await asyncio.gather(
             self.get_commits_cnts(ps),
-            self.gh_processor.get_median_tt_merge_pr(ps)
+            self.gh_processor.get_median_tt_merge_pr(ps),
+            self.gh_processor.get_not_reviewed_prs(ps)
         )
-        (ps.commit_cnts, ttm_info) = res
+        (ps.commit_cnts, ttm_info, ps.not_reviewed_prs) = res
         ps.median_tt_merge_pr, ps.times_to_merge_days = ttm_info
         # raise Exception(f"THIS IS RESP: {response}")
         return ps

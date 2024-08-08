@@ -27,6 +27,7 @@ class ProjectStat(Base):
     commit_cnts = Column(JSON, nullable=False)
     median_tt_merge_pr = Column(INT, nullable=True)  # median time from PR opening to merge (in days)
     times_to_merge_days = Column(JSON, nullable=True)
+    not_reviewed_prs = Column(INT, nullable=True)
     info = Column(String, default="")
 
 

@@ -48,6 +48,16 @@ class GHApiClient:
                 text = await response.text()
                 return json.loads(text)
 
+    async def get_list_from_many_pages(self, url: str, n: int):
+        raise NotImplemented
+        # n - how many objects do we need to retrieve
+        assert url.startswith("https")
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url,
+                                   headers={"Authorization": f"Bearer {CFG.github.token}"}) as response:
+                text = await response.text()
+                return json.loads(text)
+
 
 @dataclass
 class PR:
@@ -55,7 +65,8 @@ class PR:
     closed_at: datetime
     created_by: str
     closed_by: str
-    requested_review: bool
+    review_requested: bool
+    # review_conducted: bool
 
 
 time_format = "%Y-%m-%dT%H:%M:%SZ"
@@ -92,16 +103,31 @@ class GHProcessor:
                     closed_at=datetime.strptime(pr_data['closed_at'], time_format),
                     created_by=pr_data["user"]["login"],
                     closed_by=pr_data["merged_by"]["login"],
-                    requested_review=bool(pr_data['requested_reviewers'])
+                    review_requested=bool(pr_data['requested_reviewers'])
                 )
             except KeyError as e:
                 raise KeyError(pr_data) from e
-            except TypeError as e:
-                raise KeyError(pr_data) from e
+            # except TypeError as e:
+            #     raise KeyError(pr_data) from e
             # if pr.requested_review and pr.created_by != pr.closed_by:
             if pr.created_by != pr.closed_by:
                 res.append(pr)
                 if len(res) == n:
                     break
+
+        return res
+
+    async def get_not_reviewed_prs(self, ps: ProjectStat) -> int:
+        """ How many PRs in which a review was requested, but not conducted"""
+        url_for_list = f"{ProjectNameBuilder.get_api_url(ps.url)}/pulls?per_page={100}&state=open"
+        urls = [pr["url"] for pr in await self.gh_api_client.get_url(url=url_for_list)]
+        coros = [self.gh_api_client.get_url(url=url) for url in urls]
+        prs = await asyncio.gather(*coros)
+        res = 0
+        for pr_data in prs:
+            review_requested = bool(pr_data['requested_reviewers'])
+            review_conducted = bool(pr_data["review_comments"])
+            if review_requested and not review_conducted:
+                res += 1
 
         return res
