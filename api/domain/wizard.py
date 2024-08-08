@@ -42,6 +42,7 @@ class Wizard:
         ps.issue_cnt = response["open_issues_count"]
         ps.forks_cnt = response["forks_count"]
         ps.stars_cnt = response["stargazers_count"]
+        ps.size = response["size"]
         ps.language = response["language"]
         res = await asyncio.gather(
             self.get_commits_cnts(ps),

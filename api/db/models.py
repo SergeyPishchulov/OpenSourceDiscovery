@@ -21,6 +21,7 @@ class ProjectStat(Base):
     url = Column(String, nullable=False, unique=True, primary_key=True)  # in format owner/repo
     forks_cnt = Column(INT, nullable=False)
     stars_cnt = Column(INT, nullable=False)
+    size = Column(INT, nullable=False)  # in kBytes
     language = Column(String, nullable=True)
     issue_cnt = Column(INT, nullable=False, default=0)
     commit_cnts = Column(JSON, nullable=False)

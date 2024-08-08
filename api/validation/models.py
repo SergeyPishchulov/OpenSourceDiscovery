@@ -12,6 +12,7 @@ class ProjectStatDTO(BaseModel):
     url: str
     forks_cnt: int
     stars_cnt: int
+    size: int
     language: Optional[str] = None
     issue_cnt: int = 0
     commit_cnts: list
