@@ -39,15 +39,15 @@ class Wizard:
         query = ProjectNameBuilder.get_api_url(ps.url)
         response: dict = await self.gh_api_client.get_url(
             url=query)
+        ps.issue_cnt = response["open_issues_count"]
         ps.forks_cnt = response["forks_count"]
         ps.stars_cnt = response["stargazers_count"]
         ps.language = response["language"]
         res = await asyncio.gather(
-            self.get_issue_cnt(ps),
             self.get_commits_cnts(ps),
             self.gh_processor.get_median_tt_merge_pr(ps)
         )
-        (ps.issue_cnt, ps.commit_cnts, ps.median_tt_merge_pr) = res
+        (ps.commit_cnts, ps.median_tt_merge_pr) = res
         # raise Exception(f"THIS IS RESP: {response}")
         return ps
 
