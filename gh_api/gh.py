@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 import asyncio
 import json
 from datetime import datetime
@@ -48,20 +49,31 @@ class GHApiClient:
                 return json.loads(text)
 
 
+@dataclass
+class PR:
+    created_at: datetime
+    closed_at: datetime
+    created_by: str
+    closed_by: str
+    requested_review: bool
+
+
+time_format = "%Y-%m-%dT%H:%M:%SZ"
+
+
 class GHProcessor:
     def __init__(self):
         self.gh_api_client = GHApiClient()
 
-    async def get_median_tt_merge_pr(self, ps: ProjectStat) -> Optional[int]:
-        latest_prs = await self.get_latest_merged_prs(ps, n=50)
+    async def get_median_tt_merge_pr(self, ps: ProjectStat):
+        latest_prs = await self.get_latest_merged_prs(ps, n=100)
         if not latest_prs:
-            return None
-        tt_merge = [(pr["closed_at"] - pr["created_at"]).days for pr in latest_prs]
-        return 1
+            return None, None
+        tt_merge = [(pr.closed_at - pr.created_at).days for pr in latest_prs]
         res = int(np.median(tt_merge))
-        print(f"Calculating tt_merge: {tt_merge}, res = {res}")
+        print(f"Calculating tt_merge for {ps.url}: {tt_merge}, res = {res}")
 
-        return res
+        return res, sorted(tt_merge)
 
     async def get_latest_merged_prs(self, ps: ProjectStat, n: int):
         assert n <= 100
@@ -71,21 +83,25 @@ class GHProcessor:
         coros = [self.gh_api_client.get_url(url=url) for url in urls]
         prs = await asyncio.gather(*coros)
         res = []
-        for pr in prs:
+        for pr_data in prs:
+            if not pr_data["merged_by"]:
+                continue
             try:
-                pr["closed_by"] = pr.get("closed_by", pr.get("merged_by", None))
-                if not pr["closed_by"]:
-                    continue
-                if pr['requested_reviewers'] and pr["user"] != pr["closed_by"]:
-                    copy_fields = ["created_at", "closed_at", "closed_by", "user"]
-                    required_info = {k: pr[k] for k in copy_fields}
-                    time_format = "%Y-%m-%dT%H:%M:%SZ"
-
-                    required_info["closed_at"] = datetime.strptime(pr['closed_at'], time_format)
-                    required_info["created_at"] = datetime.strptime(pr['created_at'], time_format)
-                    res.append(required_info)
-                    if len(res) == n:
-                        break
+                pr = PR(
+                    created_at=datetime.strptime(pr_data['created_at'], time_format),
+                    closed_at=datetime.strptime(pr_data['closed_at'], time_format),
+                    created_by=pr_data["user"]["login"],
+                    closed_by=pr_data["merged_by"]["login"],
+                    requested_review=bool(pr_data['requested_reviewers'])
+                )
             except KeyError as e:
-                raise KeyError(pr) from e
+                raise KeyError(pr_data) from e
+            except TypeError as e:
+                raise KeyError(pr_data) from e
+            # if pr.requested_review and pr.created_by != pr.closed_by:
+            if pr.created_by != pr.closed_by:
+                res.append(pr)
+                if len(res) == n:
+                    break
+
         return res

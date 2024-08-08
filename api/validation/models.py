@@ -16,6 +16,7 @@ class ProjectStatDTO(BaseModel):
     issue_cnt: int = 0
     commit_cnts: list
     median_tt_merge_pr: Optional[int] = None
+    times_to_merge_days: Optional[list] = None
 
     @classmethod
     def from_orm(cls, ps: ProjectStat) -> Self:

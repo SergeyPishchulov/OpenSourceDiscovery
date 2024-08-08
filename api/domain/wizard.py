@@ -47,7 +47,8 @@ class Wizard:
             self.get_commits_cnts(ps),
             self.gh_processor.get_median_tt_merge_pr(ps)
         )
-        (ps.commit_cnts, ps.median_tt_merge_pr) = res
+        (ps.commit_cnts, ttm_info) = res
+        ps.median_tt_merge_pr, ps.times_to_merge_days = ttm_info
         # raise Exception(f"THIS IS RESP: {response}")
         return ps
 
