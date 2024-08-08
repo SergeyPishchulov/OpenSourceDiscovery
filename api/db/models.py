@@ -24,7 +24,7 @@ class ProjectStat(Base):
     language = Column(String, nullable=True)
     issue_cnt = Column(INT, nullable=False, default=0)
     commit_cnts = Column(JSON, nullable=False)
-    median_tt_merge_pr = Column(INT) # median time from PR opening to merge (in days)
+    median_tt_merge_pr = Column(INT, nullable=True)  # median time from PR opening to merge (in days)
     info = Column(String, default="")
 
 

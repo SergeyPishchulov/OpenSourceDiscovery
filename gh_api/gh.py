@@ -1,6 +1,8 @@
 import asyncio
 import json
 from datetime import datetime
+from typing import Optional
+
 import aiohttp
 import numpy as np
 from api.db.models import ProjectStat
@@ -50,8 +52,10 @@ class GHProcessor:
     def __init__(self):
         self.gh_api_client = GHApiClient()
 
-    async def get_median_tt_merge_pr(self, ps: ProjectStat):
+    async def get_median_tt_merge_pr(self, ps: ProjectStat) -> Optional[int]:
         latest_prs = await self.get_latest_merged_prs(ps, n=50)
+        if not latest_prs:
+            return None
         tt_merge = [(pr["closed_at"] - pr["created_at"]).days for pr in latest_prs]
         return 1
         res = int(np.median(tt_merge))

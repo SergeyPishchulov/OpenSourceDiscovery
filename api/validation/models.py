@@ -15,16 +15,14 @@ class ProjectStatDTO(BaseModel):
     language: Optional[str] = None
     issue_cnt: int = 0
     commit_cnts: list
-    median_tt_merge_pr: int
+    median_tt_merge_pr: Optional[int] = None
 
     @classmethod
     def from_orm(cls, ps: ProjectStat) -> Self:
         d = {}
         print(ps.__table__.columns)
         for column in ps.__table__.columns:
-            if column.name not in ['info']:
-                d[column.name] = getattr(ps, column.name)
-        # d = dict(d, **{'info': json.loads(ps.info)})
+            d[column.name] = getattr(ps, column.name)
         try:
             res = ProjectStatDTO(**d)
         except pydantic_core._pydantic_core.ValidationError:
