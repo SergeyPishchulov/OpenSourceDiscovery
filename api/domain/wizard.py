@@ -1,3 +1,4 @@
+import asyncio
 import json
 import os.path
 import shutil
@@ -7,6 +8,7 @@ from pathlib import Path
 from typing import List
 
 from api.db.models import ProjectStat, Issue
+from api.domain.GPTAnalyzer import GPTAnalyzer
 from api.domain.project_repo import ProjectStatRepo, IssueRepo
 from conf.config import CFG
 from gh_api.gh import ProjectName, ProjectNameBuilder, GHApiClient
@@ -21,6 +23,7 @@ class Wizard:
         self.repo = repo
         self.issue_repo = issue_repo
         self.gh_api_client = GHApiClient()
+        self.gpt_analyzer = GPTAnalyzer()
 
     async def get_stat(self, name: ProjectName, need_loc) -> ProjectStat:
         ps = await self.repo.get(name)
@@ -42,8 +45,9 @@ class Wizard:
             ps.forks_cnt = response["forks_count"]
             ps.stars_cnt = response["stargazers_count"]
             ps.language = response["language"]
-            ps.issue_cnt = await self.get_issue_cnt(ps)
-            ps.commit_cnts = await self.get_commits_cnts(ps)
+            (ps.issue_cnt, ps.commit_cnts) = asyncio.gather(
+                self.get_issue_cnt(ps),
+                self.get_commits_cnts(ps))
         except KeyError:
             raise KeyError(query, response)
         # raise Exception(f"THIS IS RESP: {response}")
@@ -81,6 +85,7 @@ class Wizard:
         path = str(dir_path / str(uuid.uuid4()))
         os.mkdir(path)
         full_project_url = ProjectNameBuilder.get_url_by_name(name)
+        # TODO asyncio.create_subprocess_exec()
         x = subprocess.run([f"cd {path} && git clone {full_project_url} && cloc . --exclude-dir=venv,osd --json"]
                            , capture_output=True, shell=True)
         ds = x.stdout.decode()
@@ -90,6 +95,17 @@ class Wizard:
 
     def _parse_issue_id(self, url):
         return int(url.split('/')[-1])
+
+    async def get_issue(self, ps: ProjectStat, issue_num: int) -> Issue:
+        full_issue_url = f"{ProjectNameBuilder.get_api_url(ps.url)}/issues/{issue_num}"
+        body = await self.get_issue_body(full_issue_url)
+        new_issue = Issue(id=int(issue_num),
+                          body=body,
+                          project_url=ps.url,
+                          comments=None)
+        await self.gpt_analyzer.set_marks_by_body(new_issue)
+        await self.issue_repo.add(new_issue)
+        return new_issue
 
     async def get_latest_n_open_true_issue(self, ps: ProjectStat, n: int) -> List[Issue]:
         query = f"{ProjectNameBuilder.get_api_url(ps.url)}/issues?state=open&sort=created&direction=desc"
@@ -101,8 +117,8 @@ class Wizard:
             is_true_issue = "pull_request" not in i
             if not is_true_issue:
                 continue
-            body = await self.get_issue_body(full_issue_url)
-            comments = await self.get_comments(full_issue_url)
+            body, comments = asyncio.gather(self.get_issue_body(full_issue_url),
+                                            self.get_comments(full_issue_url))
             new_issue = Issue(id=self._parse_issue_id(full_issue_url),
                               body=body,
                               project_url=ps.url,

@@ -6,12 +6,20 @@ from gpt_api.gpt_client import GPTClient
 
 url = "https://gigachat.devices.sberbank.ru/api/v1/chat/completions"
 
+content="""
+I will show you an issue from GitHub.
+This is a text of the issue:
+[BUG] Alerts going back to "Normal" state keep showing as Red on Slack message
+
+Who should do this task and why? Intern, Junior or Middle developer?
+I'll give you $5 if answers will be precise.
+"""
 payload = json.dumps({
     "model": "GigaChat",  # LITE
     "messages": [
         {
             "role": "user",
-            "content": "I will show you a message. Tell me is it positive or negative. The message is 'Glad to hear you'"
+            "content": content
         }
     ],
     "stream": False,

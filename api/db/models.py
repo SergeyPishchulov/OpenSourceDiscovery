@@ -26,6 +26,7 @@ class ProjectStat(Base):
     language = Column(String, nullable=True)
     issue_cnt = Column(INT, nullable=False, default=0)
     commit_cnts = Column(JSON, nullable=False)
+    median_tt_merge_pr = Column(INT) # median time from PR opening to merge (in days)
     info = Column(String)
 
 
@@ -33,5 +34,6 @@ class Issue(Base):
     __tablename__ = "issue"
     id = Column(INT, nullable=False, unique=True, primary_key=True)
     body = Column(String)
-    project_url = Column(String)#, ForeignKey("projectstat.url"))
-    comments = Column(JSON, nullable=False)
+    project_url = Column(String)  # , ForeignKey("projectstat.url"))
+    comments = Column(JSON, nullable=True)
+    gpt_analysis = Column(String)
