@@ -6,7 +6,7 @@ from typing import Optional
 
 import aiohttp
 import numpy as np
-from api.db.models import ProjectStat
+from api.db.models import ProjectStat, Issue
 from conf.config import CFG
 
 URL_PREFIX = 'https://'
@@ -69,7 +69,7 @@ class PR:
     # review_conducted: bool
 
 
-time_format = "%Y-%m-%dT%H:%M:%SZ"
+TIME_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
 
 
 class GHProcessor:
@@ -99,8 +99,8 @@ class GHProcessor:
                 continue
             try:
                 pr = PR(
-                    created_at=datetime.strptime(pr_data['created_at'], time_format),
-                    closed_at=datetime.strptime(pr_data['closed_at'], time_format),
+                    created_at=datetime.strptime(pr_data['created_at'], TIME_FORMAT),
+                    closed_at=datetime.strptime(pr_data['closed_at'], TIME_FORMAT),
                     created_by=pr_data["user"]["login"],
                     closed_by=pr_data["merged_by"]["login"],
                     review_requested=bool(pr_data['requested_reviewers'])
@@ -131,3 +131,5 @@ class GHProcessor:
                 res += 1
 
         return res
+
+

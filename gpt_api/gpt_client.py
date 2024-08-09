@@ -4,6 +4,7 @@ from collections import namedtuple
 from datetime import datetime, timezone
 from typing import NamedTuple
 
+import aiohttp
 import requests
 
 from conf.config import CFG
@@ -44,3 +45,38 @@ class GPTClient:
                           )
         return token
 
+    async def send(self, content: str):
+        url = "https://gigachat.devices.sberbank.ru/api/v1/chat/completions"
+
+        payload = json.dumps({
+            "model": "GigaChat",  # LITE
+            "messages": [
+                {
+                    "role": "user",
+                    "content": content
+                }
+            ],
+            "stream": False,
+            "repetition_penalty": 1
+        })
+        headers = {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'Authorization': f'Bearer {self.token}'
+        }
+        async with aiohttp.ClientSession() as session:
+            async with session.post(url, headers=headers, data=payload, verify_ssl=False) as response:
+                text = await response.text()
+                d = json.loads(text)
+                return self.parse_response(d)
+
+
+    def parse_response(self, d:dict):
+        # raise Exception(d)
+        c = d["choices"][0]["message"]["content"]
+        if "small" in c:
+            return "small"
+        if "medium" in c:
+            return "medium"
+        if "big" in c:
+            return "big"

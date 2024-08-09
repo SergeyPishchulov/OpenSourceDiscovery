@@ -34,6 +34,7 @@ class ProjectStat(Base):
 class Issue(Base):
     __tablename__ = "issue"
     id = Column(INT, nullable=False, unique=True, primary_key=True)
+    title = Column(String)
     body = Column(String)
     project_url = Column(String)  # , ForeignKey("projectstat.url"))
     comments = Column(JSON, nullable=True)
