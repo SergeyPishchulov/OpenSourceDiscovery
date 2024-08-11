@@ -1,10 +1,13 @@
 import json
 from contextlib import asynccontextmanager
+from datetime import timedelta
+from typing import Annotated
 
 from peewee import InternalError
-from fastapi import FastAPI, APIRouter, HTTPException
+from fastapi import FastAPI, APIRouter, HTTPException, status, Response, Form
 import uvicorn
 
+from api.auth import authenticate_user, create_access_token
 from api.db.models import ProjectStat
 from api.db.session import SessionHandler
 from api.domain.project_repo import ProjectStatRepo, IssueRepo
@@ -68,6 +71,25 @@ async def get_issue(owner, repo, issue_num):
 async def gh():
     repo = await GHApiClient().get_url("https://api.github.com/repos/siglens/siglens")
     return repo
+
+
+COOKIE_NAME = "jwt"
+
+
+@api_router.post("/auth")
+async def auth(password: Annotated[str, Form()], response: Response):
+    authenticated = authenticate_user(password)
+    if not authenticated:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    access_token_expires = timedelta(minutes=CFG.jwt.ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        data={"sub": "main_user"}, expires_delta=access_token_expires
+    )
+    response.set_cookie(key=COOKIE_NAME, value=access_token)
 
 
 def run():
