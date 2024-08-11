@@ -1,13 +1,14 @@
 import json
 from contextlib import asynccontextmanager
 from datetime import timedelta
+from functools import wraps
 from typing import Annotated
 
 from peewee import InternalError
-from fastapi import FastAPI, APIRouter, HTTPException, status, Response, Form
+from fastapi import FastAPI, APIRouter, HTTPException, status, Response, Form, Cookie
 import uvicorn
 
-from api.auth import authenticate_user, create_access_token
+from api.auth import authenticate_user, create_access_token, auth_by_jwt
 from api.db.models import ProjectStat
 from api.db.session import SessionHandler
 from api.domain.project_repo import ProjectStatRepo, IssueRepo
@@ -30,6 +31,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 wizard: Wizard
 api_router = APIRouter(prefix="/api")
+COOKIE_NAME = "jwt"
 
 
 @api_router.get("/")
@@ -38,7 +40,8 @@ async def root():
 
 
 @api_router.get('/stat/{owner}/{repo}')
-async def get_stat(owner, repo):
+async def get_stat(owner, repo, jwt: Annotated[str | None, Cookie()] = None):
+    auth_by_jwt(jwt)
     if not owner or not repo:
         raise HTTPException(status_code=404, detail="owner and repo must be specified")
     name = ProjectNameBuilder.get_name(owner, repo)
@@ -71,9 +74,6 @@ async def get_issue(owner, repo, issue_num):
 async def gh():
     repo = await GHApiClient().get_url("https://api.github.com/repos/siglens/siglens")
     return repo
-
-
-COOKIE_NAME = "jwt"
 
 
 @api_router.post("/auth")
