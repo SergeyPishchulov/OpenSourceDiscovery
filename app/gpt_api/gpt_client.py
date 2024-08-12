@@ -1,13 +1,12 @@
 import json
 import uuid
-from collections import namedtuple
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import NamedTuple
 
 import aiohttp
 import requests
 
-from conf.config import CFG
+from app.conf.config import CFG
 
 
 class GigaToken(NamedTuple):

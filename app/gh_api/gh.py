@@ -2,12 +2,11 @@ from dataclasses import dataclass
 import asyncio
 import json
 from datetime import datetime
-from typing import Optional
 
 import aiohttp
 import numpy as np
-from api.db.models import ProjectStat, Issue
-from conf.config import CFG
+from app.api.db.models import ProjectStat
+from app.conf.config import CFG
 
 URL_PREFIX = 'https://'
 GH_BASE_URL = "github.com"

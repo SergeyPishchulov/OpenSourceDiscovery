@@ -1,11 +1,9 @@
-import json
-from typing import Any, Optional
+from typing import Optional
 from typing_extensions import Self
 import pydantic_core
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
-from api.db.models import ProjectStat
-from sqlalchemy.inspection import inspect
+from app.api.db.models import ProjectStat
 
 
 class ProjectStatDTO(BaseModel):

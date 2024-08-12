@@ -1,6 +1,6 @@
-from api.db.models import Issue
-from gpt_api.gpt_client import GPTClient
-from utils.markdownutil import MarkdownUtil
+from app.api.db.models import Issue
+from app.gpt_api.gpt_client import GPTClient
+from app.utils.markdownutil import MarkdownUtil
 
 
 class GPTAnalyzer:

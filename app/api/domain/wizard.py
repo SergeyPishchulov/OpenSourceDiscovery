@@ -7,11 +7,11 @@ import uuid
 from pathlib import Path
 from typing import List
 
-from api.db.models import ProjectStat, Issue
-from api.domain.GPTAnalyzer import GPTAnalyzer
-from api.domain.project_repo import ProjectStatRepo, IssueRepo
-from conf.config import CFG
-from gh_api.gh import ProjectName, ProjectNameBuilder, GHApiClient, GHProcessor
+from app.api.db.models import ProjectStat, Issue
+from app.api.domain.GPTAnalyzer import GPTAnalyzer
+from app.api.domain.project_repo import ProjectStatRepo, IssueRepo
+from app.conf.config import CFG
+from app.gh_api.gh import ProjectName, ProjectNameBuilder, GHApiClient, GHProcessor
 
 N_FILES = 'n_files'
 N_LINES = 'n_lines'

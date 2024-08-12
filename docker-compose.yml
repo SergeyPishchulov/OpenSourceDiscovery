@@ -1,0 +1,16 @@
+version: "3"
+services:
+  server:
+    container_name: fastapi
+    build: .
+    ports:
+      - 8000:8000
+    depends_on:
+      - postgres
+
+  postgres:
+    container_name: osdpostgres
+    image: postgres
+    ports:
+      - "5432:5432"
+

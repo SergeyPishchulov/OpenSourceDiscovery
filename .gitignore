@@ -1,5 +1,5 @@
 /osd_notes.txt
 /osd/
 /outputs/
-/local_data/
-/conf/config.yaml
+/app/local_data/
+/app/conf/config.yaml

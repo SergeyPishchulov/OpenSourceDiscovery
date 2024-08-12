@@ -2,10 +2,10 @@ from datetime import datetime, timezone, timedelta
 
 from passlib.context import CryptContext
 
-from conf.config import CFG
+from app.conf.config import CFG
 import jwt
 from jwt.exceptions import InvalidTokenError
-from fastapi import FastAPI, APIRouter, HTTPException, status, Response, Form
+from fastapi import HTTPException, status
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 

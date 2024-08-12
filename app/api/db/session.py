@@ -1,7 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
-from api.db.models import Base
+from app.api.db.models import Base
 
 
 class SessionHandler:

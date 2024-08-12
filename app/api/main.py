@@ -1,34 +1,29 @@
-import json
 from contextlib import asynccontextmanager
 from datetime import timedelta
-from functools import wraps
 from typing import Annotated
 
-from peewee import InternalError
 from fastapi import FastAPI, APIRouter, HTTPException, status, Response, Form, Cookie
 import uvicorn
 
-from api.auth import authenticate_user, create_access_token, auth_by_jwt
-from api.db.models import ProjectStat
-from api.db.session import SessionHandler
-from api.domain.project_repo import ProjectStatRepo, IssueRepo
-from api.domain.wizard import Wizard
-from conf.config import CFG
-from gh_api.gh import GHApiClient, ProjectNameBuilder
-from omegaconf import DictConfig
-from api.validation.models import ProjectStatDTO
+from app.api.auth import authenticate_user, create_access_token, auth_by_jwt
+from app.api.db.models import ProjectStat
+from app.api.db.session import SessionHandler
+from app.api.domain.project_repo import ProjectStatRepo, IssueRepo
+from app.api.domain.wizard import Wizard
+from app.conf.config import CFG
+from app.gh_api.gh import GHApiClient, ProjectNameBuilder
+from app.api.validation.models import ProjectStatDTO
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Load the ML model
     handler: SessionHandler = app.session_handler
     await handler.init_models()
     yield
-    # Clean up the ML models and release the resources
 
 
-app = FastAPI(lifespan=lifespan)
+# app = FastAPI(lifespan=lifespan)
+app = FastAPI()
 wizard: Wizard
 api_router = APIRouter(prefix="/api")
 COOKIE_NAME = "jwt"
@@ -90,16 +85,18 @@ async def auth(password: Annotated[str, Form()], response: Response):
         data={"sub": "main_user"}, expires_delta=access_token_expires
     )
     response.set_cookie(key=COOKIE_NAME, value=access_token)
+    return "OK"
+
+
+cfg = CFG
+session_handler = SessionHandler(cfg)
+app.__setattr__("session_handler", session_handler)
+repo = ProjectStatRepo(session_handler)
+issue_repo = IssueRepo(session_handler)
+# global wizard
+wizard = Wizard(repo, issue_repo)
+app.include_router(api_router)
 
 
 def run():
-    cfg = CFG
-    session_handler = SessionHandler(cfg)
-    app.__setattr__("session_handler", session_handler)
-    repo = ProjectStatRepo(session_handler)
-    issue_repo = IssueRepo(session_handler)
-    global wizard
-    wizard = Wizard(repo, issue_repo)
-    app.include_router(api_router)
-
     uvicorn.run(app, host="0.0.0.0", port=8000)

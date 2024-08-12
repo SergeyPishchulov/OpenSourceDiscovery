@@ -1,8 +1,8 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from api.db.models import ProjectStat, Issue
-from api.db.session import SessionHandler
-from gh_api.gh import ProjectName
+from app.api.db.models import ProjectStat, Issue
+from app.api.db.session import SessionHandler
+from app.gh_api.gh import ProjectName
 
 
 async def get_db() -> AsyncSession:
